@@ -1,3 +1,0 @@
-namespace SGE {
-	void debug();
-}
