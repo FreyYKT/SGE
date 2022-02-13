@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SGECore/Event.hpp"
+
 #include <memory>
 
 namespace SGE{
@@ -20,6 +22,8 @@ namespace SGE{
 	private:
 		std::unique_ptr<class Window> window;
 
+		EventDispatcher eventDispatcher;
+		bool isWindowClosed = false;
 	};
 
 }

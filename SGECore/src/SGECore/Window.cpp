@@ -8,7 +8,7 @@ namespace SGE {
     static bool s_GLFW_initialized = false;
 
 	Window::Window(std::string title, const unsigned int width, const unsigned int height)
-		: title(std::move(title)), width(width), height(height)
+        : data({ std::move(title), width, height })
 	{
 		int res_code = init();
 	}
@@ -17,7 +17,7 @@ namespace SGE {
 	}
 
 	int Window::init() {
-        LOG_INFO("Create window {0} sized {1}x{2}", title, width, height);
+        LOG_INFO("Create window {0} sized {1}x{2}", data.title, data.width, data.height);
 
         if (!s_GLFW_initialized) {
             if (!glfwInit()) {
@@ -27,10 +27,10 @@ namespace SGE {
             s_GLFW_initialized = true;
         }
 
-        window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+        window = glfwCreateWindow(data.width, data.height, data.title.c_str(), nullptr, nullptr);
         if (!window)
         {
-            LOG_CRITICAL("Can't create window {0} sized {1}x{2}!", title, width, height);
+            LOG_CRITICAL("Can't create window {0} sized {1}x{2}!", data.title, data.width, data.height);
             glfwTerminate();
             return -2;
         }
@@ -41,6 +41,39 @@ namespace SGE {
             LOG_CRITICAL("Failed to initialize GLAD");
             return -3;
         }
+
+        glfwSetWindowUserPointer(window, &data);
+
+        glfwSetWindowSizeCallback(window,
+            [](GLFWwindow* window, int width, int height) {
+                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+                data.width = width;
+                data.height = height;
+
+                EventWindowResize event(width, height);
+                data.eventCallbackFn(event);
+            }
+        );
+
+        glfwSetCursorPosCallback(window,
+            [](GLFWwindow* pWindow, double x, double y)
+            {
+                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
+
+                EventMouseMoved event(x, y);
+                data.eventCallbackFn(event);
+            }
+        );
+
+        glfwSetWindowCloseCallback(window,
+            [](GLFWwindow* pWindow)
+            {
+                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
+
+                EventWindowClose event;
+                data.eventCallbackFn(event);
+            }
+        );
 	}
 
 	void Window::shutdown() {

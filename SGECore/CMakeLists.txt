@@ -5,6 +5,7 @@ set(PROJECT_NAME SGECore)
 set(PROJECT_PUBLIC_INCLUDES
 	include/SGECore/Application.hpp
 	include/SGECore/Log.hpp
+	include/SGECore/Event.hpp
 )
 
 set(PROJECT_PRIVATE_INCLUDES
