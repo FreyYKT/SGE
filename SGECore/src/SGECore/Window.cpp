@@ -4,13 +4,20 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <imgui/imgui.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+#include <imgui/backends/imgui_impl_glfw.h>
+
 namespace SGE {
     static bool s_GLFW_initialized = false;
 
-	Window::Window(std::string title, const unsigned int width, const unsigned int height)
-        : data({ std::move(title), width, height })
-	{
+	Window::Window(std::string title, const unsigned int width, const unsigned int height) : data({ std::move(title), width, height }) {
 		int res_code = init();
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui_ImplOpenGL3_Init();
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
 	}
 	Window::~Window() {
 		shutdown();
@@ -84,6 +91,20 @@ namespace SGE {
 	void Window::on_update() {
         glClearColor(0.5, 0.5, 0.5, 1);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplaySize.x = static_cast<float>(getWidth());
+        io.DisplaySize.y = static_cast<float>(getHeight());
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::ShowDemoWindow();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window);
         glfwPollEvents();    
     }
